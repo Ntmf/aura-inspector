@@ -5,7 +5,9 @@ This is not an officially supported Google product. This project is not eligible
 
 ## Introduction
 
-<b>aura-inspector</b> is a Swiss Army knife of Salesforce Experience Cloud testing. It facilitates in discovering misconfigured Salesforce Experience Cloud applications as well as automates much of the testing process. Some of it's functionality includes:
+<b>aura-inspector</b> is a Swiss Army knife of Salesforce Experience Cloud testing. It facilitates in discovering misconfigured Salesforce Experience Cloud applications as well as automates much of the testing process. For more information, please refer to the Mandiant blog post: [Auditing Salesforce Aura Data Exposure](https://cloud.google.com/blog/topics/threat-intelligence/auditing-salesforce-aura-data-exposure).
+
+Some of it's functionality includes:
 - Discovery of accessible records from both Guest and Authenticated contexts
 - Ability to get the total number of records of objects using undocumented GraphQL Aura method
 - Checks for self-registration capabilities
