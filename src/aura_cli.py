@@ -235,6 +235,7 @@ def main():
 	parser.add_argument("-r", "--aura-request-file", help="Provide a request file to an /aura endpoint")
 	parser.add_argument("-b", "--batch-file", help="CSV file with org URLs and optional parameters for batch scanning")
 	parser.add_argument("-i", "--ignore-list", help="Text file with object names to ignore (one per line)")
+	parser.add_argument("-w", "--workers", help="Number of parallel workers for batch scanning (default: 1, sequential)", type=int, default=1)
 
 	args = parser.parse_args()
 
@@ -286,6 +287,7 @@ def main():
 			insecure=args.insecure,
 			object_list=object_list,
 			no_gql=args.no_gql,
+			workers=args.workers,
 		)
 		return
 

@@ -2,6 +2,7 @@ import csv
 import json
 import os
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date
 from colored_logger import logger
 from aura_helper import AuraError
@@ -191,7 +192,7 @@ def write_consolidated_json(report, scan_metadata, output_path):
 	logger.info(f'Consolidated JSON report written to {output_path}')
 
 
-def run_batch(batch_file, ignore_list, output_dir, proxy, insecure, object_list, no_gql):
+def run_batch(batch_file, ignore_list, output_dir, proxy, insecure, object_list, no_gql, workers=1):
 	"""Run batch scanning across multiple orgs."""
 	configs = load_org_configs(batch_file)
 	if not configs:
@@ -210,13 +211,34 @@ def run_batch(batch_file, ignore_list, output_dir, proxy, insecure, object_list,
 	results = []
 	failed_orgs = []
 
-	for i, config in enumerate(configs, start=1):
-		logger.info(f'--- Scanning org {i}/{len(configs)}: {config["url"]} ---')
-		result = scan_org(config, common_args, ignore_list, output_dir)
-		results.append(result)
+	if workers > 1:
+		logger.info(f'Running with {workers} parallel workers')
+		completed_count = 0
+		# Map futures back to their config index for ordering
+		with ThreadPoolExecutor(max_workers=workers) as executor:
+			future_to_config = {
+				executor.submit(scan_org, config, common_args, ignore_list, output_dir): config
+				for config in configs
+			}
+			for future in as_completed(future_to_config):
+				config = future_to_config[future]
+				completed_count += 1
+				try:
+					result = future.result()
+				except Exception as e:
+					result = {"url": config["url"], "error": str(e)}
+				logger.info(f'Completed {completed_count}/{len(configs)}: {config["url"]}')
+				results.append(result)
+				if "error" in result:
+					failed_orgs.append({"url": result["url"], "error": result["error"]})
+	else:
+		for i, config in enumerate(configs, start=1):
+			logger.info(f'--- Scanning org {i}/{len(configs)}: {config["url"]} ---')
+			result = scan_org(config, common_args, ignore_list, output_dir)
+			results.append(result)
 
-		if "error" in result:
-			failed_orgs.append({"url": result["url"], "error": result["error"]})
+			if "error" in result:
+				failed_orgs.append({"url": result["url"], "error": result["error"]})
 
 	# Build consolidated report
 	succeeded = len(results) - len(failed_orgs)

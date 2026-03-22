@@ -54,9 +54,25 @@ python3 aura_cli.py -b orgs.csv -o results/ -p http://127.0.0.1:8080
 
 # Disable GraphQL for all orgs (can also be set per-org in CSV)
 python3 aura_cli.py -b orgs.csv -o results/ --no-gql
+
+# Run with 5 parallel workers for faster scanning
+python3 aura_cli.py -b orgs.csv -o results/ -w 5
+
+# Parallel with ignore list
+python3 aura_cli.py -b orgs.csv -i ignore.txt -o results/ -k -w 10
 ```
 
 **Note:** `--batch-file` cannot be combined with `-u` or `-r`. The `--output-dir` flag is required in batch mode.
+
+### Parallel Scanning
+
+By default, orgs are scanned sequentially (one at a time). Use `-w`/`--workers` to scan multiple orgs in parallel:
+
+```bash
+python3 aura_cli.py -b orgs.csv -o results/ -w 5
+```
+
+This uses 5 threads to scan orgs concurrently. Each org still gets its own HTTP session, so there are no shared-state issues. Start with a low number (3-5) and increase if your network and the target Salesforce instances can handle it. Console output from parallel scans will be interleaved.
 
 ### Error Handling
 
