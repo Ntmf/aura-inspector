@@ -132,3 +132,6 @@ records_found/
 
 # Output folders created during testing
 output/
+
+# Claude Settings
+.claude
