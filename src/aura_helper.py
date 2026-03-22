@@ -22,6 +22,10 @@ from http.cookies import SimpleCookie
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+class AuraError(Exception):
+	"""Raised when AuraHelper encounters a fatal error for a given org."""
+	pass
+
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:85.0) Gecko/210100101 Firefox/85.0'
 AURA_ENDPOINTS = ['/s/sfsites/aura','/s/aura','/aura','/sfsites/aura']
 
@@ -214,14 +218,14 @@ class AuraHelper:
 			except requests.exceptions.ConnectionError:
 				logger.error("Cannot reach the target URL, aborting...")
 				logger.debug(traceback.format_exc())
-				exit()
+				raise AuraError("Cannot reach the target URL")
 			except:
 				logger.error("Error when trying to retrieve aura endpoint")
 				logger.debug(traceback.format_exc())
 				pass
 		#If we get out of the loop we did not find it
 		logger.critical('Could not identify aura endpoint.')
-		exit()
+		raise AuraError('Could not identify aura endpoint')
 
 	def get_context(self):
 		response_body = self.session.get(self.app, allow_redirects=True, headers=self.headers)
@@ -248,7 +252,7 @@ class AuraHelper:
 
 			if 'markup://aura:invalidSession' in resp_data:
 				logger.critical('Invalid session when trying to get context, guest access might be disabled, aborting')
-				exit()
+				raise AuraError('Invalid session - guest access might be disabled')
 			elif fwuid is None:
 				json_resp_data = json.loads(resp_data)
 				if 'context' in json_resp_data:
@@ -256,7 +260,7 @@ class AuraHelper:
 				else:
 					logger.critical('No context found in response, aborting')
 					logger.debug(json_resp_data)
-					exit()
+					raise AuraError('No context found in response')
 			else:
 				fwuid = fwuid.group(1).strip()
 			app_data = 'siteforce:loginApp2'

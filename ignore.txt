@@ -1,0 +1,3 @@
+# Objects that are expected to be publicly accessible.
+# One object name per line, case-insensitive.
+# Add objects here to exclude them from scan results.
